@@ -160,7 +160,8 @@ class Azul
                               vector<pair <int,int> > &zettenReeksMaxi);
 
   private:
-    int hoogte, breedte;   // hoogte, breedte van het bord
+    int hoogte, breedte;  // hoogte, breedte van het bord
+    int Bord[MaxDimensie][MaxDimensie]; 
 
   // TODO: uw eigen private memberfuncties en -variabelen
 

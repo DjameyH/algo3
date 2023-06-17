@@ -44,9 +44,23 @@ int Azul::getVakje (int rij, int kolom)
 
 bool Azul::leesInBord (const char* invoerNaam)
 {
-  // TODO: implementeer deze memberfunctie
 
-  return false;
+    ifstream fin(invoerNaam, std::ifstream::in);
+    if(fin.fail()){//error inlezen check
+        Azul();
+        return false;
+    }
+    fin >> hoogte; 
+    fin >> breedte;
+    if(hoogte > MaxDimensie || hoogte < 0 || breedte > MaxDimensie || breedte < 0) return false;
+    for(int i = 0; i < hoogte; i++){
+        for(int j = 0; j < breedte; j++){
+            fin >> Bord[i][j];
+            if(Bord[i][j] != 0 && Bord[i][j] != 1) return false;
+        }
+    }
+
+  return true;
 
 }  // leesInBord
 
@@ -54,8 +68,12 @@ bool Azul::leesInBord (const char* invoerNaam)
 
 void Azul::drukAfBord ()
 {
-  // TODO: implementeer deze memberfunctie
-
+  for(int i = 0; i < hoogte; i++){
+      for(int j = 0; j < breedte; j++){
+          cout << Bord[i][j] << ' ';
+      }
+      cout << endl;
+  }
 }  // drukAfBord
 
 //****************************************************************************

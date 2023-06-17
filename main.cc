@@ -211,7 +211,7 @@ void hoofdmenu ()
               cout << "Geef de naam van het tekstbestand met de invoer: ";
               cin >> invoerNaam;
               if (a1 -> leesInBord (invoerNaam))
-              { a1 -> drukAfBord ();
+              { //a1 -> drukAfBord ();
                 menuVoorBord (a1);
               }
               delete a1;  // netjes opruimen
