@@ -66,7 +66,7 @@ bool Azul::leesInBord (const char* invoerNaam)
         bord = bord & ~(1<<i);
         
     }
-
+    baseBord = bord;
   return true;
 
 }  // leesInBord
@@ -126,12 +126,55 @@ bool Azul::unDoeZet ()
 
 //****************************************************************************
 
+int ScorePlusBijZet(int bord, pair<int,int> zet){
+  int bitIndex = zet.first*breedte + zet.second;
+}
+
 bool Azul::bepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                    int &maxi, long long &volgordesMaxi)
 {
   // TODO: implementeer deze memberfunctie
+
+  // MAX
+  // Base case: checken, (bord == baseBord) maxi = 0;
+  // Anders:
+  //      in dit geval, volgordes = Som(VolgordesB_i[k] waar MaxScoresB[k] = MaxScore(B))
+  if(bord == baseBord)
+    maxi = 1;
+
+  int wegTeHalenSteen;
+
+  int preMax = 0;
+  int totaalVolgordes = 1;
+  for(int i = 0; i<hoogte; i++){
+    for(int j = 0; j<breedte; j++){
+      int bitIndex = i*breedte + j;
+      wegTeHalenSteen = geefBit(bord, bitIndex);
+      if (wegTeHalenSteen){
+        //steen weghalen 
+        bord=bord&~(1<<bitIndex);
+        //Recursieve aanroep
+        
+        bepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi);
+        if(maxi > preMax){
+          totaalVolgordes = volgordesMaxi;
+          preMax = maxi;
+        }
+        if(maxi == preMax){
+          totaalVolgordes += volgordesMaxi;
+        }
+
+        bord=bord|(1<<bitIndex);
+      }
+    }
+  }
+
+  maxi = preMax;
+  volgordesMaxi = totaalVolgordes;
+
   
-  return false;
+
+  return true;
 
 }  // bepaalMiniMaxiScoreRec
 
