@@ -161,8 +161,8 @@ class Azul
 
   private:
     int hoogte, breedte;  // hoogte, breedte van het bord
-    int Bord[MaxDimensie][MaxDimensie]; 
-
+    int bord = -1;
+    vector<pair<int,int>> zetten;
   // TODO: uw eigen private memberfuncties en -variabelen
 
 };

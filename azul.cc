@@ -35,9 +35,12 @@ Azul::~Azul ()
 int Azul::getVakje (int rij, int kolom)
 { 
   // TODO: implementeer deze memberfunctie
-
-  return -1;
-
+  if(bord < 0 || !integerInBereik(rij, 0, hoogte-1) || !integerInBereik(kolom, 0, breedte-1))
+    return -1;
+   
+  int bitIndex = rij*breedte + kolom;
+  
+  return geefBit(bord, bitIndex);
 }  // getVakje
 
 //*************************************************************************
@@ -50,14 +53,18 @@ bool Azul::leesInBord (const char* invoerNaam)
         Azul();
         return false;
     }
+    bord = 0;
     fin >> hoogte; 
     fin >> breedte;
     if(hoogte > MaxDimensie || hoogte < 0 || breedte > MaxDimensie || breedte < 0) return false;
-    for(int i = 0; i < hoogte; i++){
-        for(int j = 0; j < breedte; j++){
-            fin >> Bord[i][j];
-            if(Bord[i][j] != 0 && Bord[i][j] != 1) return false;
-        }
+    for(int i = 0; i < hoogte*breedte; i++){
+      int inhoud; 
+      fin >> inhoud;
+      if(inhoud)
+        bord = bord | (1<<i);
+      else
+        bord = bord & ~(1<<i);
+        
     }
 
   return true;
@@ -67,11 +74,16 @@ bool Azul::leesInBord (const char* invoerNaam)
 //*************************************************************************
 
 void Azul::drukAfBord ()
-{
-  for(int i = 0; i < hoogte; i++){
-      for(int j = 0; j < breedte; j++){
-          cout << Bord[i][j] << ' ';
-      }
+{ //TODO druk scores af
+  if(bord == -1){
+    cout << "Ongeldig bord" << endl;
+    return;
+  }
+
+  for(int i = 0; i < hoogte*breedte; i++){
+    cout << geefBit(bord, i);
+    cout << " ";
+    if(i%breedte == breedte-1)
       cout << endl;
   }
 }  // drukAfBord
@@ -80,9 +92,18 @@ void Azul::drukAfBord ()
 
 bool Azul::doeZet (int rij, int kolom)
 {
-  // TODO: implementeer deze memberfunctie
+  if(bord < 0 || !integerInBereik(rij, 0, hoogte-1) || !integerInBereik(kolom, 0, breedte-1))
+    return false;
 
-  return false;
+  int bitIndex = rij*breedte + kolom;
+
+  if(geefBit(bord, bitIndex))
+    return false;
+  
+  bord = bord | (1<<bitIndex);
+  zetten.push_back(make_pair(rij,kolom));
+
+  return true;
 
 }  // doeZet
 
@@ -90,10 +111,17 @@ bool Azul::doeZet (int rij, int kolom)
 
 bool Azul::unDoeZet ()
 {
-  // TODO: implementeer deze memberfunctie
+  if(zetten.size() == 0 || bord < 0)
+    return false;
 
-  return false;
+  int unDoeRij = zetten.back().first;
+  int unDoeKolom = zetten.back().second;
+  zetten.pop_back(); //laatste zet weghalen uit stack
+  int bitIndex = unDoeRij*breedte + unDoeKolom;
 
+  bord = bord & ~(1<<bitIndex);
+
+  return true;
 }  // unDoeZet
 
 //****************************************************************************
