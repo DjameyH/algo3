@@ -126,11 +126,72 @@ bool Azul::unDoeZet ()
 
 //****************************************************************************
 
-int ScorePlusBijZet(int bord, pair<int,int> zet){
-  int bitIndex = zet.first*breedte + zet.second;
+int Azul::ScorePlusBijZet(int bord, pair<int,int> zet){
+  int scoreV = 1, scoreH = 1, score;
+  for(int j = zet.second+1; j < breedte; j++){
+    int bitIndex = zet.first*breedte+j;
+    if(geefBit(bord, bitIndex))
+      scoreH++;
+    else
+      break;
+  }
+  for(int j = zet.second-1; j >= 0; j--){
+    int bitIndex = zet.first*breedte+j;
+    if(geefBit(bord, bitIndex))
+      scoreH++;
+    else
+      break;
+  }  
+
+  for(int i = zet.first+1; i < hoogte; i++){
+    int bitIndex = i*breedte+zet.second;
+    if(geefBit(bord, bitIndex))
+      scoreV++;
+    else
+      break;
+  }
+  for(int i = zet.first-1; i >= 0; i--){
+    int bitIndex = i*breedte+zet.second;
+    if(geefBit(bord, bitIndex))
+      scoreV++;
+    else
+      break;
+  }
+
+  if(scoreV == 1)
+    score = scoreH;
+  else {
+    if (scoreH == 1)
+      score = scoreV;
+    else{
+      score = scoreV + scoreH;
+    } 
+  }
+
+  return score;
 }
 
 bool Azul::bepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
+                              int &maxi, long long &volgordesMaxi){
+  bord = (1<<(hoogte*breedte)) - 1; //maak het hele bord vol
+  hulpBepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi);
+  bord = baseBord;
+  return true;
+
+}
+
+int Azul::aantalTegels(int speelBord){
+  int count = 0;
+    while (speelBord != 0) {
+        if ((speelBord & 1) == 1) {
+            count++;
+        }
+        speelBord >>= 1;
+    }
+    return count;
+}
+
+bool Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                    int &maxi, long long &volgordesMaxi)
 {
   // TODO: implementeer deze memberfunctie
@@ -139,38 +200,67 @@ bool Azul::bepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
   // Base case: checken, (bord == baseBord) maxi = 0;
   // Anders:
   //      in dit geval, volgordes = Som(VolgordesB_i[k] waar MaxScoresB[k] = MaxScore(B))
-  if(bord == baseBord)
-    maxi = 1;
-
-  int wegTeHalenSteen;
-
-  int preMax = 0;
-  int totaalVolgordes = 1;
-  for(int i = 0; i<hoogte; i++){
-    for(int j = 0; j<breedte; j++){
-      int bitIndex = i*breedte + j;
-      wegTeHalenSteen = geefBit(bord, bitIndex);
-      if (wegTeHalenSteen){
-        //steen weghalen 
-        bord=bord&~(1<<bitIndex);
-        //Recursieve aanroep
-        
-        bepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi);
-        if(maxi > preMax){
-          totaalVolgordes = volgordesMaxi;
-          preMax = maxi;
-        }
-        if(maxi == preMax){
-          totaalVolgordes += volgordesMaxi;
-        }
-
-        bord=bord|(1<<bitIndex);
-      }
+  
+  if(bord == baseBord){
+    drukAfBord();
+    maxi = 0;
+    volgordesMaxi = 1;
+    cout << endl;
+  } 
+  else{
+    if(aantalTegels(bord) == aantalTegels(baseBord)){
+      drukAfBord();
+      cout << endl;
+      maxi = 0;
+      volgordesMaxi = 0;
+      return false;
     }
+      
+
+    int wegTeHalenSteen;
+
+    int preMax = 0;
+    int totaalVolgordes = 0;
+    for(int i = 0; i<hoogte; i++){
+      for(int j = 0; j<breedte; j++){
+        int bitIndex = i*breedte + j;
+        wegTeHalenSteen = geefBit(bord, bitIndex);
+        if (wegTeHalenSteen){
+          //steen weghalen 
+          bord=bord & ~(1<<bitIndex);
+         //Recursieve aanroep
+          if(hulpBepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi)){
+            int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
+        
+            if(maxi + scoreBijTerugPlaatsen > preMax){
+              totaalVolgordes = volgordesMaxi;
+              preMax = maxi + scoreBijTerugPlaatsen;
+            }
+            else if(maxi + scoreBijTerugPlaatsen == preMax){
+              totaalVolgordes += volgordesMaxi;
+            }
+          }
+          bord=bord|(1<<bitIndex);
+          
+         
+          
+          
+          
+    
+         
+          
+
+          
+        }
+      }
+      
+    }
+
+    maxi = preMax;
+    volgordesMaxi = totaalVolgordes;
   }
 
-  maxi = preMax;
-  volgordesMaxi = totaalVolgordes;
+  
 
   
 

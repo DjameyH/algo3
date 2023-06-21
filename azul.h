@@ -105,6 +105,9 @@ class Azul
     // * De bedekking van het bord is niet veranderd.
     bool bepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                  int &maxi, long long &volgordesMaxi);
+
+    bool hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
+                                   int &maxi, long long &volgordesMaxi);
     
     // Bepaal met top-down dynamisch programmeren de minimale en de maximale
     // totaalscore die gehaald kunnen worden als je het bord compleet wil
@@ -158,6 +161,9 @@ class Azul
     // * De bedekking van het bord is niet veranderd.
     void drukAfZettenReeksen (vector<pair <int,int> > &zettenReeksMini,
                               vector<pair <int,int> > &zettenReeksMaxi);
+
+    int ScorePlusBijZet(int bord, pair<int,int> zet);
+    int aantalTegels(int speelBord);
 
   private:
     int hoogte, breedte;  // hoogte, breedte van het bord
