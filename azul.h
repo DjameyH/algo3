@@ -124,6 +124,11 @@ class Azul
     bool bepaalMiniMaxiScoreTD (int &mini, long long &volgordesMini, 
                                 int &maxi, long long &volgordesMaxi);
 
+    void hulpBepaalMiniMaxiScoreTD (int &mini, long long &volgordesMini, 
+                                    int &maxi, long long &volgordesMaxi, int memo[], int bord);
+    
+    bool hulpTD(vector<int> &maxiMemo, vector<long long> &maxiVolgordesMemo, vector<int> &miniMemo, vector<long long> &volgordesMiniMemo);
+
     // Bepaal met bottom-up dynamisch programmeren de minimale en de maximale
     // totaalscore die gehaald kunnen worden als je het bord compleet wil
     // bedekken met tegels, uitgaande van de huidige bedekking van het bord.
@@ -164,6 +169,8 @@ class Azul
 
     int ScorePlusBijZet(int bord, pair<int,int> zet);
     int aantalTegels(int speelBord);
+    vector<int> getDeelOplossingen(int bord);
+    pair<int,int> binaryNaarZet(int binZet);
 
   private:
     int hoogte, breedte;  // hoogte, breedte van het bord

@@ -126,6 +126,7 @@ bool Azul::unDoeZet ()
 
 //****************************************************************************
 
+
 int Azul::ScorePlusBijZet(int bord, pair<int,int> zet){
   int scoreV = 1, scoreH = 1, score;
   for(int j = zet.second+1; j < breedte; j++){
@@ -191,34 +192,32 @@ int Azul::aantalTegels(int speelBord){
     return count;
 }
 
+vector<int> Azul::getDeelOplossingen(int bord) {
+    vector<int> deelOplossingen;
+
+    for(int i = 0 ; i<breedte*hoogte; i++){
+        if(geefBit(bord, i) && (bord&~(1<<i)) >= baseBord)
+          deelOplossingen.push_back(bord&~(1<<i));
+    }
+
+    return deelOplossingen;
+}
+
+
 bool Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                    int &maxi, long long &volgordesMaxi)
 {
-  // TODO: implementeer deze memberfunctie
-
-  // MAX
-  // Base case: checken, (bord == baseBord) maxi = 0;
-  // Anders:
-  //      in dit geval, volgordes = Som(VolgordesB_i[k] waar MaxScoresB[k] = MaxScore(B))
-  
   if(bord == baseBord){
-    drukAfBord();
     maxi = 0;
     volgordesMaxi = 1;
-    cout << endl;
   } 
   else{
     if(aantalTegels(bord) == aantalTegels(baseBord)){
-      drukAfBord();
-      cout << endl;
       maxi = 0;
       volgordesMaxi = 0;
       return false;
     }
-      
-
     int wegTeHalenSteen;
-
     int preMax = 0;
     int totaalVolgordes = 0;
     for(int i = 0; i<hoogte; i++){
@@ -231,7 +230,6 @@ bool Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
          //Recursieve aanroep
           if(hulpBepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi)){
             int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
-        
             if(maxi + scoreBijTerugPlaatsen > preMax){
               totaalVolgordes = volgordesMaxi;
               preMax = maxi + scoreBijTerugPlaatsen;
@@ -240,43 +238,121 @@ bool Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
               totaalVolgordes += volgordesMaxi;
             }
           }
-          bord=bord|(1<<bitIndex);
-          
-         
-          
-          
-          
-    
-         
-          
-
-          
+          bord=bord|(1<<bitIndex);   
         }
       }
-      
     }
-
     maxi = preMax;
     volgordesMaxi = totaalVolgordes;
   }
-
-  
-
-  
-
   return true;
-
 }  // bepaalMiniMaxiScoreRec
 
 //*************************************************************************
 
+pair<int,int> Azul::binaryNaarZet(int binZet){
+  int bitIndex = 0;
+  for(int i = 0; i<breedte*hoogte; i++){
+    if((binZet>>i)%2 == 1){
+      bitIndex = i;
+      break;
+    }
+  }
+  int zetI = bitIndex/breedte;
+  int zetJ = bitIndex % breedte;
+  return make_pair(zetI, zetJ);
+}
+
+
+
+bool Azul::hulpTD(vector<int> &maxiMemo, vector<long long> &volgordesMaxiMemo, vector<int> &miniMemo, vector<long long> &volgordesMiniMemo)
+{
+  if(bord == baseBord){
+    maxiMemo[bord] = 0;
+    volgordesMaxiMemo[bord] = 1;
+    miniMemo[bord] = 0;
+    volgordesMiniMemo[bord] = 1;
+    return true;
+  } 
+  else{
+    if(aantalTegels(bord) == aantalTegels(baseBord)){
+      maxiMemo[bord] = 0;
+      volgordesMaxiMemo[bord] = 0;
+      miniMemo[bord] = 0;
+      volgordesMiniMemo[bord] = 0;
+      return false;
+    }
+    int preMax = 0;
+    long long totaalVolgordesMaxi = 0;
+    int preMin = INT32_MAX;
+    long long totaalVolgordesMini = 0;
+    int wegTeHalenSteen;
+    
+    for(int i = 0; i<hoogte; i++){
+      for(int j = 0; j<breedte; j++){
+        int bitIndex = i*breedte + j;
+        wegTeHalenSteen = geefBit(bord, bitIndex);
+        if (wegTeHalenSteen){
+          
+          //steen weghalen 
+          bord=bord & ~(1<<bitIndex);
+          //Recursieve aanroep
+          if(volgordesMaxiMemo[bord] == -1)
+            hulpTD(maxiMemo, volgordesMaxiMemo, miniMemo, volgordesMiniMemo);
+          if(volgordesMaxiMemo[bord] > 0)
+          {
+            int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
+          
+            if(maxiMemo[bord] + scoreBijTerugPlaatsen > preMax){
+              totaalVolgordesMaxi = volgordesMaxiMemo[bord];
+              preMax = maxiMemo[bord] + scoreBijTerugPlaatsen;
+            }
+            else if(maxiMemo[bord] + scoreBijTerugPlaatsen == preMax){
+              totaalVolgordesMaxi += volgordesMaxiMemo[bord];
+            }
+
+            if(miniMemo[bord] + scoreBijTerugPlaatsen < preMin){
+              totaalVolgordesMini = volgordesMiniMemo[bord];
+              preMin = miniMemo[bord] + scoreBijTerugPlaatsen;
+            }
+            else if(miniMemo[bord] + scoreBijTerugPlaatsen == preMin){
+              totaalVolgordesMini += volgordesMiniMemo[bord];
+            }
+
+          }
+          
+          bord=bord|(1<<bitIndex);   
+        }
+      }
+    }
+    maxiMemo[bord] = preMax;
+    volgordesMaxiMemo[bord] = totaalVolgordesMaxi;
+    miniMemo[bord] = preMin;
+    volgordesMiniMemo[bord] = totaalVolgordesMini;
+  }
+  return true;
+}
+
+
+
 bool Azul::bepaalMiniMaxiScoreTD (int &mini, long long &volgordesMini,
                                   int &maxi, long long &volgordesMaxi)
 {
-  // TODO: implementeer deze memberfunctie
+  int grens = (1<<(breedte*hoogte))-1; //vol bord
+  cout << grens;
+  vector<int> miniMemo(grens, -1);
+  vector<int> maxiMemo(grens, -1);
+  vector<long long> maxiVolgordesMemo(grens, -1);
+  vector<long long> miniVolgordesMemo(grens, -1);
 
-  return false;
-
+  bord = grens;
+  hulpTD(maxiMemo, maxiVolgordesMemo, miniMemo, miniVolgordesMemo);
+  bord = baseBord;
+  maxi = maxiMemo[grens];
+  volgordesMaxi = maxiVolgordesMemo[grens];
+  mini = miniMemo[grens];
+  volgordesMini = miniVolgordesMemo[grens];
+  return true;
 }  // bepaalMiniMaxiScoreTD
 
 //*************************************************************************
@@ -286,9 +362,54 @@ bool Azul::bepaalMiniMaxiScoreBU (int &mini, long long &volgordesMini,
                                   vector< pair<int,int> > &zettenReeksMini,
                                   vector< pair<int,int> > &zettenReeksMaxi)
 {
-  // TODO: implementeer deze memberfunctie
+  int grens = (1<<(breedte*hoogte))-1;
+  vector<int> miniMemo(grens+1, INT32_MAX);
+  vector<int> maxiMemo(grens+1, -1);
+  vector<long long> maxiVolgordesMemo(grens+1, 0);
+  vector<long long> miniVolgordesMemo(grens+1, 0);
+  
+  miniMemo[bord] = 0;
+  maxiMemo[bord] = 0;
+  miniVolgordesMemo[bord] = 1;
+  maxiVolgordesMemo[bord] = 1;
 
-  return false;
+  for(bord = bord+1; bord<=grens; bord++)
+  {
+    pair<int,int> miniZet;
+    pair<int,int> maxiZet;
+    vector<int> deelOplossingen = getDeelOplossingen(bord);
+    for(size_t j = 0; j<deelOplossingen.size(); j++){
+      if(maxiMemo[deelOplossingen[j]] == -1)
+        continue;
+      int scoreBijTerugPlaatsen = ScorePlusBijZet(deelOplossingen[j], binaryNaarZet(bord-deelOplossingen[j]));
+      if(maxiMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen > maxiMemo[bord]){
+        maxiZet = binaryNaarZet(bord-deelOplossingen[j]);
+        maxiMemo[bord] = maxiMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen;
+        maxiVolgordesMemo[bord] = maxiVolgordesMemo[deelOplossingen[j]];
+      }
+      else if(maxiMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen == maxiMemo[bord]){
+        maxiVolgordesMemo[bord] += maxiVolgordesMemo[deelOplossingen[j]];
+      }
+
+      if(miniMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen < miniMemo[bord]){
+        miniZet = binaryNaarZet(bord-deelOplossingen[j]);
+        miniMemo[bord] = miniMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen;
+        miniVolgordesMemo[bord] = miniVolgordesMemo[deelOplossingen[j]];
+      }
+      else if(miniMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen == miniMemo[bord]){
+        miniVolgordesMemo[bord] += miniVolgordesMemo[deelOplossingen[j]];
+      }
+    }
+    zettenReeksMaxi.push_back(maxiZet);
+    zettenReeksMini.push_back(miniZet);
+  }
+  maxi = maxiMemo[grens];
+  volgordesMaxi = maxiVolgordesMemo[grens];
+  mini = miniMemo[grens];
+  volgordesMini = miniVolgordesMemo[grens];
+
+  bord = baseBord;
+  return true;
 
 }  // bepaalMiniMaxiScoreBU
 
@@ -298,7 +419,15 @@ void Azul::drukAfZettenReeksen (vector<pair <int,int> > &zettenReeksMini,
                                 vector<pair <int,int> > &zettenReeksMaxi)
 {
   // TODO: implementeer deze memberfunctie
+  for(size_t i = 0; i < zettenReeksMaxi.size(); i++){
+    cout << "("<<zettenReeksMaxi[i].first << ", " << zettenReeksMaxi[i].second << ") " << ScorePlusBijZet(bord, zettenReeksMaxi[i]) << endl;
+    doeZet(zettenReeksMaxi[i].first, zettenReeksMaxi[i].second); 
+  }
+  bord = baseBord;
+  for(size_t i = 0; i < zettenReeksMini.size(); i++){
 
+  }
+  bord = baseBord;
 }  // drukAfZettenReeksen
 
 //*************************************************************************
