@@ -377,32 +377,27 @@ bool Azul::bepaalMiniMaxiScoreBU (int &mini, long long &volgordesMini,
   vector<int> maxiMemo(grens+1, -1);
   vector<long long> maxiVolgordesMemo(grens+1, 0);
   vector<long long> miniVolgordesMemo(grens+1, 0);
+  vector<int> gebruikteDeeloplossingen(1, 0);
   
-  miniMemo[bord] = 0;
-  maxiMemo[bord] = 0;
-  miniVolgordesMemo[bord] = 1;
-  maxiVolgordesMemo[bord] = 1;
-
+  miniMemo[bord] = 0, maxiMemo[bord] = 0, miniVolgordesMemo[bord] = 1, maxiVolgordesMemo[bord] = 1;
+  
   for(bord = bord+1; bord<=grens; bord++)
   {
-    pair<int,int> miniZet;
-    pair<int,int> maxiZet;
     vector<int> deelOplossingen = getDeelOplossingen(bord);
+    int gebruikteDeeloplossing = 0;
     for(size_t j = 0; j<deelOplossingen.size(); j++){
       if(maxiMemo[deelOplossingen[j]] == -1)
         continue;
       int scoreBijTerugPlaatsen = ScorePlusBijZet(deelOplossingen[j], binaryNaarZet(bord-deelOplossingen[j]));
       if(maxiMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen > maxiMemo[bord]){
-        maxiZet = binaryNaarZet(bord-deelOplossingen[j]);
+        gebruikteDeeloplossing = deelOplossingen[j];
         maxiMemo[bord] = maxiMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen;
         maxiVolgordesMemo[bord] = maxiVolgordesMemo[deelOplossingen[j]];
       }
       else if(maxiMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen == maxiMemo[bord]){
         maxiVolgordesMemo[bord] += maxiVolgordesMemo[deelOplossingen[j]];
       }
-
       if(miniMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen < miniMemo[bord]){
-        miniZet = binaryNaarZet(bord-deelOplossingen[j]);
         miniMemo[bord] = miniMemo[deelOplossingen[j]] + scoreBijTerugPlaatsen;
         miniVolgordesMemo[bord] = miniVolgordesMemo[deelOplossingen[j]];
       }
@@ -410,13 +405,30 @@ bool Azul::bepaalMiniMaxiScoreBU (int &mini, long long &volgordesMini,
         miniVolgordesMemo[bord] += miniVolgordesMemo[deelOplossingen[j]];
       }
     }
-    zettenReeksMaxi.push_back(maxiZet);
-    zettenReeksMini.push_back(miniZet);
+    gebruikteDeeloplossingen.push_back(gebruikteDeeloplossing);
   }
   maxi = maxiMemo[grens];
   volgordesMaxi = maxiVolgordesMemo[grens];
   mini = miniMemo[grens];
   volgordesMini = miniVolgordesMemo[grens];
+
+  vector<int> maxiDeelOplossingen;
+
+  int i = grens;
+  maxiDeelOplossingen.push_back(i);
+  while(i!=0){
+    i = gebruikteDeeloplossingen[i];
+    maxiDeelOplossingen.push_back(i);
+  }
+
+  for(int i = maxiDeelOplossingen.size()-1; i>0; i--){
+    zettenReeksMaxi.push_back(binaryNaarZet(maxiDeelOplossingen[i-1]-maxiDeelOplossingen[i]));
+  }
+
+  
+
+
+
 
   bord = baseBord;
   return true;
