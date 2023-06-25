@@ -163,16 +163,62 @@ void menuVoorBord (Azul *a1)
 
 // Voer de experimenten uit, zoals beschreven in de opdracht.
 void doeExperimenten ()
-{ int keuze;
- 
+{ Azul *a1;
+  double Results[7] = {-1, -1, -1, -1, -1, -1, -1};
+  int mini, maxi, keuze;
+  long long volgordesMini, volgordesMaxi;
+  vector <pair <int,int> > zettenReeksMini, zettenReeksMaxi;
   keuze = 0;
+  clock_t t1;
+  int inputs[][2] = {{2, 2},{3, 2},{3, 3},{4, 3},{4, 4},{5, 4},{5, 5}};
   while (keuze!=4)
   {
+    if (Results[0] != -1) {// Output all the elements of ResultRec
+      for (int i = 0; i < 7; i++) {
+        cout << Results[i] << " ";
+      }
+      cout << endl;
+    }
+
     keuze = keuzeUitMenu2 ();
+switch (keuze)
+{
+case 1:{
+  for (int i = 0; i < 7; i++) {
+      a1 = new Azul(inputs[i][0], inputs[i][1]);
+      t1 = clock();
+      a1->bepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi);
+      Results[i] = (((double)(clock()-t1))/CLOCKS_PER_SEC);
+      cout << "De tijd voor bord grootte (" << inputs[i][0] << "," << inputs[i][1] << ") is: " << Results[i] << " seconden." << endl;
+    }
+    break;
+}
+case 2:{
+  for (int i = 0; i < 7; i++) {
+      a1 = new Azul(inputs[i][0], inputs[i][1]);
+      t1 = clock();
+      a1->bepaalMiniMaxiScoreTD(mini, volgordesMini, maxi, volgordesMaxi);
+      Results[i] = (((double)(clock()-t1))/CLOCKS_PER_SEC);
+      cout << "De tijd voor bord grootte (" << inputs[i][0] << "," << inputs[i][1] << ") is: " << Results[i] << " seconden." << endl;
+    }
+    break;
+}
+case 3:{
+  for (int i = 0; i < 7; i++) {
+      a1 = new Azul(inputs[i][0], inputs[i][1]);
+      t1 = clock();
+      a1->bepaalMiniMaxiScoreBU(mini, volgordesMini, maxi, volgordesMaxi, zettenReeksMini, zettenReeksMaxi);
+      Results[i] = (((double)(clock()-t1))/CLOCKS_PER_SEC);
 
-    // TODO: doe het experiment voor de gekozen manier om minimale
-    //   en maximale scores te bepalen
+      cout << "De tijd voor bord grootte (" << inputs[i][0] << "," << inputs[i][1] << ") is: " << Results[i] << " seconden." << endl;
+    }
+    break;
+}
 
+  default:
+    cout << "Voer een goede keuze in";
+    break;
+}
   }  // while
 
 }  // doeExperimenten
