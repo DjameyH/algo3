@@ -106,7 +106,8 @@ class Azul
     bool bepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                  int &maxi, long long &volgordesMaxi);
 
-    bool hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
+    //gewrapte hulpfunctie voor bepaalMiniMaxiScoreRec
+    void hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                    int &maxi, long long &volgordesMaxi);
     
     // Bepaal met top-down dynamisch programmeren de minimale en de maximale
@@ -124,10 +125,9 @@ class Azul
     bool bepaalMiniMaxiScoreTD (int &mini, long long &volgordesMini, 
                                 int &maxi, long long &volgordesMaxi);
 
-    void hulpBepaalMiniMaxiScoreTD (int &mini, long long &volgordesMini, 
-                                    int &maxi, long long &volgordesMaxi, int memo[], int bord);
     
-    bool hulpTD(vector<int> &maxiMemo, vector<long long> &maxiVolgordesMemo, vector<int> &miniMemo, vector<long long> &volgordesMiniMemo);
+    //gewrapte hulpfunctie voor bepaalMiniMaxiScoreTD
+    void hulpTD(vector<int> &maxiMemo, vector<long long> &maxiVolgordesMemo, vector<int> &miniMemo, vector<long long> &volgordesMiniMemo);
 
     // Bepaal met bottom-up dynamisch programmeren de minimale en de maximale
     // totaalscore die gehaald kunnen worden als je het bord compleet wil
@@ -167,18 +167,24 @@ class Azul
     void drukAfZettenReeksen (vector<pair <int,int> > &zettenReeksMini,
                               vector<pair <int,int> > &zettenReeksMaxi);
 
+
+    //pre: bord moet valid zijn, zet moet in het bord passen en er moet niet al een tegel liggen
+    //berekent de score die het zou opleveren om zet 'zet' te doen in 'bord'
     int ScorePlusBijZet(int bord, pair<int,int> zet);
-    int aantalTegels(int speelBord);
+
+
+    //retourneert alle deeloplossingen van 'bord'
     vector<int> getDeelOplossingen(int bord);
+
+    //neemt een getal 'binZet' als parameter dat een bordstate representeert
+    //returnt een pair van coordinaten (hoogte, breedte)
     pair<int,int> binaryNaarZet(int binZet);
 
   private:
     int hoogte, breedte;  // hoogte, breedte van het bord
-    int bord = -1;
-    int baseBord = -1;
-    vector<pair<int,int>> zetten;
-  // TODO: uw eigen private memberfuncties en -variabelen
-
+    int bord = -1; //staat van het bord
+    int baseBord = -1; //de ingelezen bordstate, wordt gebruikt om te resetten
+    vector<pair<int,int>> zetten; //onthoudt de zetten die worden gedaan met doeZet
 };
 
 #endif

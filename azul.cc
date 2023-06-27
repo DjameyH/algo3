@@ -10,7 +10,6 @@ using namespace std;
 
 Azul::Azul ()
 {
-  // TODO: implementeer zo nodig deze constructor
 
 }  // default constructor
 
@@ -18,15 +17,16 @@ Azul::Azul ()
 
 Azul::Azul (int nwHoogte, int nwBreedte)
 {
-  // TODO: implementeer deze constructor
-
+  hoogte = nwHoogte;
+  breedte = nwBreedte;
+  bord = 0;
+  baseBord=0;
 }  // constructor met parameters
 
 //*************************************************************************
 
 Azul::~Azul ()
 {
-  // TODO: implementeer zo nodig deze destructor
 
 }  // destructor
 
@@ -143,7 +143,6 @@ int Azul::ScorePlusBijZet(int bord, pair<int,int> zet){
     else
       break;
   }  
-
   for(int i = zet.first+1; i < hoogte; i++){
     int bitIndex = i*breedte+zet.second;
     if(geefBit(bord, bitIndex))
@@ -158,7 +157,6 @@ int Azul::ScorePlusBijZet(int bord, pair<int,int> zet){
     else
       break;
   }
-
   if(scoreV == 1)
     score = scoreH;
   else {
@@ -181,17 +179,6 @@ bool Azul::bepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
 
 }
 
-int Azul::aantalTegels(int speelBord){
-  int count = 0;
-    while (speelBord != 0) {
-        if ((speelBord & 1) == 1) {
-            count++;
-        }
-        speelBord >>= 1;
-    }
-    return count;
-}
-
 vector<int> Azul::getDeelOplossingen(int bord) {
     vector<int> deelOplossingen;
 
@@ -199,11 +186,10 @@ vector<int> Azul::getDeelOplossingen(int bord) {
         if(geefBit(bord, i) && (bord&~(1<<i)) >= baseBord)
           deelOplossingen.push_back(bord&~(1<<i));
     }
-
     return deelOplossingen;
 }
 
-bool Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
+void Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
                                    int &maxi, long long &volgordesMaxi)
 {
   if(bord == baseBord){
@@ -213,48 +199,33 @@ bool Azul::hulpBepaalMiniMaxiScoreRec (int &mini, long long &volgordesMini,
     volgordesMini = 1;
   } 
   else{
-    int wegTeHalenSteen;
-    int magNietZet;
-    int preMax = 0;
-    int preMin = INT32_MAX;
-    int totaalVolgordesMax = 0;
-    int totaalVolgordesMin = 0;
+    int preMax = 0, preMin = INT32_MAX;
+    long long totaalVolgordesMax = 0, totaalVolgordesMin = 0;
     for(int i = 0; i<hoogte; i++){
       for(int j = 0; j<breedte; j++){
         int bitIndex = i*breedte + j;
-        wegTeHalenSteen = geefBit(bord, bitIndex);
-        magNietZet = geefBit(baseBord, bitIndex);
+        int wegTeHalenSteen = geefBit(bord, bitIndex);
+        int magNietZet = geefBit(baseBord, bitIndex);
         if (wegTeHalenSteen && !magNietZet){
-          //steen weghalen 
-          bord=bord & ~(1<<bitIndex);
-         //Recursieve aanroep
-            hulpBepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi);
-            int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
-            if(maxi + scoreBijTerugPlaatsen > preMax){
-              totaalVolgordesMax = volgordesMaxi;
-              preMax = maxi + scoreBijTerugPlaatsen;
-            }
-            else if(maxi + scoreBijTerugPlaatsen == preMax){
-              totaalVolgordesMax += volgordesMaxi;
-            }
-
-            if(mini + scoreBijTerugPlaatsen < preMin){
-              totaalVolgordesMin = volgordesMini;
-              preMin = mini + scoreBijTerugPlaatsen;
-            }
-            else if(mini + scoreBijTerugPlaatsen == preMin){
-              totaalVolgordesMin += volgordesMini;
-            }
+          bord=bord & ~(1<<bitIndex); //steen weghalen 
+          hulpBepaalMiniMaxiScoreRec(mini, volgordesMini, maxi, volgordesMaxi);//Recursieve aanroep
+          int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
+          if(maxi + scoreBijTerugPlaatsen > preMax){
+            totaalVolgordesMax = volgordesMaxi;
+            preMax = maxi + scoreBijTerugPlaatsen;
+          }
+          else if(maxi + scoreBijTerugPlaatsen == preMax){ totaalVolgordesMax += volgordesMaxi; }
+          if(mini + scoreBijTerugPlaatsen < preMin){
+            totaalVolgordesMin = volgordesMini;
+            preMin = mini + scoreBijTerugPlaatsen;
+          }
+          else if(mini + scoreBijTerugPlaatsen == preMin){ totaalVolgordesMin += volgordesMini; }
           bord=bord|(1<<bitIndex);   
         }
       }
     }
-    maxi = preMax;
-    volgordesMaxi = totaalVolgordesMax;
-    mini = preMin;
-    volgordesMini = totaalVolgordesMin;
+    maxi = preMax, volgordesMaxi = totaalVolgordesMax, mini = preMin, volgordesMini = totaalVolgordesMin;
   }
-  return true;
 }  // bepaalMiniMaxiScoreRec
 
 
@@ -275,76 +246,44 @@ pair<int,int> Azul::binaryNaarZet(int binZet){
 
 
 
-bool Azul::hulpTD(vector<int> &maxiMemo, vector<long long> &volgordesMaxiMemo, vector<int> &miniMemo, vector<long long> &volgordesMiniMemo)
+void Azul::hulpTD(vector<int> &maxiMemo, vector<long long> &volgordesMaxiMemo, vector<int> &miniMemo, vector<long long> &volgordesMiniMemo)
 {
-  if(bord == baseBord){
-    maxiMemo[bord] = 0;
-    volgordesMaxiMemo[bord] = 1;
-    miniMemo[bord] = 0;
-    volgordesMiniMemo[bord] = 1;
-    return true;
-  } 
+  if(bord == baseBord)
+    maxiMemo[bord] = 0, miniMemo[bord] = 0, volgordesMaxiMemo[bord] = 1, volgordesMiniMemo[bord] = 1;
   else{
-    if(aantalTegels(bord) == aantalTegels(baseBord)){
-      maxiMemo[bord] = 0;
-      volgordesMaxiMemo[bord] = 0;
-      miniMemo[bord] = 0;
-      volgordesMiniMemo[bord] = 0;
-      return false;
-    }
-    int preMax = 0;
-    long long totaalVolgordesMaxi = 0;
-    int preMin = INT32_MAX;
-    long long totaalVolgordesMini = 0;
-    int wegTeHalenSteen, magNietZet;
-    
+    int preMax = 0, preMin = INT32_MAX;
+    long long totaalVolgordesMaxi = 0,totaalVolgordesMini = 0;
     for(int i = 0; i<hoogte; i++){
       for(int j = 0; j<breedte; j++){
         int bitIndex = i*breedte + j;
-        wegTeHalenSteen = geefBit(bord, bitIndex);
-        magNietZet = geefBit(baseBord, bitIndex);
+        int wegTeHalenSteen = geefBit(bord, bitIndex);
+        int magNietZet = geefBit(baseBord, bitIndex);
         if (wegTeHalenSteen && !magNietZet){
-          
-          //steen weghalen 
-          bord=bord & ~(1<<bitIndex);
-          //Recursieve aanroep
+          bord=bord & ~(1<<bitIndex); //steen weghalen 
           if(volgordesMaxiMemo[bord] == -1)
-            hulpTD(maxiMemo, volgordesMaxiMemo, miniMemo, volgordesMiniMemo);
-          if(volgordesMaxiMemo[bord] > 0)
-          {
-            int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
-          
-            if(maxiMemo[bord] + scoreBijTerugPlaatsen > preMax){
-              totaalVolgordesMaxi = volgordesMaxiMemo[bord];
-              preMax = maxiMemo[bord] + scoreBijTerugPlaatsen;
-            }
-            else if(maxiMemo[bord] + scoreBijTerugPlaatsen == preMax){
-              totaalVolgordesMaxi += volgordesMaxiMemo[bord];
-            }
-
-            if(miniMemo[bord] + scoreBijTerugPlaatsen < preMin){
-              totaalVolgordesMini = volgordesMiniMemo[bord];
-              preMin = miniMemo[bord] + scoreBijTerugPlaatsen;
-            }
-            else if(miniMemo[bord] + scoreBijTerugPlaatsen == preMin){
-              totaalVolgordesMini += volgordesMiniMemo[bord];
-            }
-
+            hulpTD(maxiMemo, volgordesMaxiMemo, miniMemo, volgordesMiniMemo); //Recursieve aanroep
+          int scoreBijTerugPlaatsen = ScorePlusBijZet(bord, make_pair(i,j));
+          if(maxiMemo[bord] + scoreBijTerugPlaatsen > preMax){
+            totaalVolgordesMaxi = volgordesMaxiMemo[bord];
+            preMax = maxiMemo[bord] + scoreBijTerugPlaatsen;
           }
-          
-          bord=bord|(1<<bitIndex);   
+          else if(maxiMemo[bord] + scoreBijTerugPlaatsen == preMax){
+            totaalVolgordesMaxi += volgordesMaxiMemo[bord];
+          }
+          if(miniMemo[bord] + scoreBijTerugPlaatsen < preMin){
+            totaalVolgordesMini = volgordesMiniMemo[bord];
+            preMin = miniMemo[bord] + scoreBijTerugPlaatsen;
+          }
+          else if(miniMemo[bord] + scoreBijTerugPlaatsen == preMin){
+            totaalVolgordesMini += volgordesMiniMemo[bord];
+          }
+          bord=bord|(1<<bitIndex); //steen terugzetten
         }
       }
     }
-    maxiMemo[bord] = preMax;
-    volgordesMaxiMemo[bord] = totaalVolgordesMaxi;
-    miniMemo[bord] = preMin;
-    volgordesMiniMemo[bord] = totaalVolgordesMini;
+    maxiMemo[bord] = preMax, volgordesMaxiMemo[bord] = totaalVolgordesMaxi, miniMemo[bord] = preMin, volgordesMiniMemo[bord] = totaalVolgordesMini;
   }
-  return true;
 }
-
-
 
 bool Azul::bepaalMiniMaxiScoreTD (int &mini, long long &volgordesMini,
                                   int &maxi, long long &volgordesMaxi)
